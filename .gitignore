@@ -1,0 +1,14 @@
+
+
+.vscode
+.micropico
+__pycache__
+
+/sphinx/_build
+/sphinx/_static
+/sphinx/_templates
+
+/python-I2C-Device-Drivers
+
+*.mp4
+Figures and Images/20231121_190940.mp4
