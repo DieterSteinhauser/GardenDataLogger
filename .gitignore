@@ -8,7 +8,7 @@ sphinx/_build
 sphinx/_static
 sphinx/_templates
 
-src/python-I2C-Device-Drivers
+src/upython_i2c_drivers
 
 *.mp4
 Figures and Images/20231121_190940.mp4

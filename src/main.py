@@ -2,13 +2,10 @@
 #                 NOTES 
 # -----------------------------------------
 """
-Dieter Steinhauser
-10/2023
+Dieter Steinhauser and Trevor Burns 
+4/2024
 
-PowerPico
-
-Drone Maestros Power Management and Measurement Pico. Controls DC/DC converters over I2C, 
-Measures Rail outputs, Measure battery Charging/Discharging, and Solar output.
+Garden Data Logger System
 
 """
 
@@ -18,8 +15,10 @@ Measures Rail outputs, Measure battery Charging/Discharging, and Solar output.
 
 import gc
 import time
-from machine import Pin, Timer, ADC, freq, I2C, UART, WDT
-
+# from machine import Pin, Timer, ADC, freq, I2C, UART, WDT
+from machine import Pin, ADC, freq, I2C, WDT
+from upy_i2c_drivers.MCP9808 import MCP9808
+from upy_i2c_drivers.helpers import *
 # -----------------------------------------
 #         CONSTANTS/VARIABLES
 # -----------------------------------------   
@@ -78,10 +77,10 @@ if system_clock !=  DEFAULT_SYS_CLK:
   |      Ground Ref      |   GND     |   8   |  33   |   GND     |    ADC Ground Ref    |
   |                      |   GP6     |   9   |  32   |   GP27    |    ADC1 Channel      |
   |                      |   GP7     |  10   |  31   |   GP26    |    ADC0 Channel      |
-  |       UART TX        |   GP8     |  11   |  30   |   RUN     | WPU, SC->GND to RST  |
-  |       UART RX        |   GP9     |  12   |  29   |   GP22    |   ADC Muxing Switch  |
+  |                      |   GP8     |  11   |  30   |   RUN     | WPU, SC->GND to RST  |
+  |                      |   GP9     |  12   |  29   |   GP22    |   ADC Muxing Switch  |
   |      Ground Ref      |   GND     |  13   |  28   |   GND     |      Ground Ref      |
-  |   CHARGE_ORIENT_1    |   GP10    |  14   |  27   |   GP21    |      Mux CTRL D      |
+  |                      |   GP10    |  14   |  27   |   GP21    |      Mux CTRL D      |
   |   CHARGE_ORIENT_2    |   GP11    |  15   |  26   |   GP20    |      Mux CTRL C      |
   |   H-BRIDGE IN2       |   GP12    |  16   |  25   |   GP19    |      Mux CTRL B      |
   |   H-BRIDGE IN1       |   GP13    |  17   |  24   |   GP18    |      Mux CTRL A      |
@@ -100,9 +99,22 @@ led_onboard = Pin("LED", Pin.OUT)
 #            I2C Devices
 # -----------------------------------------
 
-# TODO In final development use hardware settings to change I2C address.
+i2c_bus =  I2C(1, sda=Pin(14), scl=Pin(15, Pin.OUT), freq=100_000)
 
-# i2c_bus =  I2C(1, sda=Pin(14), scl=Pin(15, Pin.OUT), freq=100_000)
+# if debugging, print the addresses of connected I2C Devices.
+# if DEBUG:
+
+devices = i2c_bus.scan()
+hex_addr = [hex(x) for x in devices]
+print(f"Seen device addresses: {hex_addr}")
+
+time.sleep(1)
+tsense = MCP9808(name='temp_sense', address=0x18, i2c_bus=i2c_bus)
+print(tsense.temperature_c())
+# Device ADDR +W -> Register ADDR -> Write Data
+# Device ADDR +R-> Register ADDR -> Read Data
+
+# 0x18 -> 0x05 -> Data
 
 
 # -----------------------------------------
@@ -145,7 +157,10 @@ if WATCHDOG_EN:
     wdt.feed()
 
 while True:
-         
+    temp_celsius = tsense.temperature_c()
+
+    print(temp_celsius)
+    print(c_to_f(temp_celsius))
     # -----------------------------------------
     led_onboard.toggle()
     time.sleep_ms(REFRESH_PERIOD)
