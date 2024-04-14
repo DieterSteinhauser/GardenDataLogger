@@ -17,8 +17,8 @@ import gc
 import time
 # from machine import Pin, Timer, ADC, freq, I2C, UART, WDT
 from machine import Pin, ADC, freq, I2C, WDT
-from upy_i2c_drivers.MCP9808 import MCP9808
-from upy_i2c_drivers.helpers import *
+from upython_i2c_drivers.MCP9808 import MCP9808
+from upython_i2c_drivers.helpers import *
 # -----------------------------------------
 #         CONSTANTS/VARIABLES
 # -----------------------------------------   
@@ -121,13 +121,23 @@ print(tsense.temperature_c())
 #           ADC
 # -----------------------------------------
 
-# See ADC.py
+adc0 = ADC(Pin(26, Pin.IN)) # Connect to GP26, which is channel 0
+adc1 = ADC(Pin(27, Pin.IN)) # Connect to GP27, which is channel 1
+adc2 = ADC(Pin(28, Pin.IN)) # Connect to GP28, which is channel 2
+adc3 = ADC(Pin(29, Pin.IN)) # Connect to GP29, which is channel 3, Internal VSYS monitor
+adc4 = ADC(4)
 
-# adc0 = ADC(26) # Connect to GP26, which is channel 0
-# adc1 = ADC(27) # Connect to GP27, which is channel 1
-# adc2 = ADC(28) # Connect to GP28, which is channel 2
+VOLT_PER_BIT = 3.0/65535
 # adc_reading = adc0.read_u16() * VOLT_PER_BIT # read and report the ADC reading
 
+# Onboard VSYS Sensor
+# adc3.read_u16() * VOLT_PER_BIT * 3
+
+# Onboard Temperature Sensor
+# temp = 27 - (ADC_voltage - 0.706)/0.001721
+
+
+adc_value = adc0.read_u16() * VOLT_PER_BIT
 # -----------------------------------------
 #           WATCHDOG TIMER
 # -----------------------------------------
@@ -161,6 +171,8 @@ while True:
 
     print(temp_celsius)
     print(c_to_f(temp_celsius))
+    # print(adc3.read_u16() * VOLT_PER_BIT * 3)
+    # print(27 - ((adc4.read_u16() * VOLT_PER_BIT) - 0.706)/0.001721)
     # -----------------------------------------
     led_onboard.toggle()
     time.sleep_ms(REFRESH_PERIOD)
